@@ -1,0 +1,681 @@
+Windows Fundamentals Module
+Section Questions Writeup
+Tier: 0
+Difficulty: Fundamental
+Type: General
+Created By: mrb3n
+Co-Authors: LTNB0B
+Section Questions and their Answers
+Section 	Question Number 	Answer
+Introduction to Windows 	Question 1 	19041
+Introduction to Windows 	Question 2 	Windows 10
+Operating System Structure 	Question 1 	c8fe8d977d3a0c655ed7cf81e4d13c75
+File System 	Question 1 	bob.smith
+NTFS vs. Share Permissions 	Question 1 	SMB
+NTFS vs. Share Permissions 	Question 2 	Event viewer
+NTFS vs. Share Permissions 	Question 3 	C:\Users\htb-student\Desktop\Company Data
+Windows Services & Processes 	Question 1 	FoxitReaderUpdateService.exe
+Interacting with the Windows Operating System 	Question 1 	ifconfig
+Interacting with the Windows Operating System 	Question 2 	Unrestricted
+Windows Management Instrumentation (WMI) 	Question 1 	00329-10280-00000-AA938
+Windows Security 	Question 1 	S-1-5-21-2614195641-1726409526-3792725429-1003
+Windows Security 	Question 2 	NordVPN
+Skills Assessment - Windows Fundamentals 	Question 1 	Everyone
+Skills Assessment - Windows Fundamentals 	Question 2 	Security
+Skills Assessment - Windows Fundamentals 	Question 3 	wuauserv
+Skills Assessment - Windows Fundamentals 	Question 4 	S-1-5-21-2614195641-1726409526-3792725429-1006
+Skills Assessment - Windows Fundamentals 	Question 5 	S-1-5-21-2614195641-1726409526-3792725429-1007
+Acronyms Used in Writeups
+Acronym 	Meaning
+STMIP 	Spawned Target Machine IP Address
+STMPO 	Spawned Target Machine Port
+PMVPN 	Personal Machine with a Connection to the Academy's VPN
+PWNIP 	Pwnbox IP Address (or PMVPN IP Address)
+PWNPO 	Pwnbox Port (or PMVPN Port)
+Introduction to Windows
+Question 1
+"What is the Build Number of the target workstation?"
+
+After spawning the Windows target machine, students need to use xfreerdp to connect to it using the credentials htb-student:Academy_WinFun! (and accept the certificate by providing Y when promoted to):
+Code: shell
+
+xfreerdp /v:STMIP /u:htb-student /p:Academy_WinFun!
+
+┌─[us-academy-1]─[10.10.14.215]─[htb-ac413848@pwnbox-base]─[~]
+└──╼ [★]$ xfreerdp /v:10.129.184.98 /u:htb-student /p:Academy_WinFun!
+
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.core] - freerdp_connect:freerdp_set_last_error_ex resetting error state
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpdr
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpsnd
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx cliprdr
+[15:57:49:121] [4099:4100] [INFO][com.freerdp.primitives] - primitives autodetect, using optimized
+<SNIP>
+[15:57:49:577] [4099:4100] [ERROR][com.freerdp.crypto] - A valid certificate for the wrong name should NOT be trusted!
+Certificate details for 10.129.184.98:3389 (RDP-Server):
+	Common Name: WS01
+	Subject:     CN = WS01
+	Issuer:      CN = WS01
+	Thumbprint:  c7:53:c8:76:45:0c:ba:59:a8:7c:a3:f9:a5:a5:4a:55:da:1b:06:76:b8:36:e3:97:04:59:19:63:7c:a1:07:b3
+The above X.509 certificate could not be verified, possibly because you do not have
+the CA certificate in your certificate store, or the certificate has expired.
+Please look at the OpenSSL documentation on how to add a private CA to the store.
+Do you trust the above certificate? (Y/T/N) Y 
+<SNIP>
+
+Windows_Fundamentals_image_1.png
+
+After successfully connecting to the spawned target machine, students need to open PowerShell and use the Get-WmiObject Cmdlet with the Win32_OperatingSystem class and only show BuildNumber:
+Code: powershell
+
+Get-WmiObject -Class Win32_OperatingSystem | select BuildNumber
+
+PS C:\Users\htb-student> Get-WmiObject -Class Win32_OperatingSystem | select BuildNumber
+
+BuildNumber
+-----------
+19041
+
+The Build Number of the spawned target machine is 19041.
+
+Answer: 19041
+Introduction to Windows
+Question 2
+"Which Windows NT version is installed on the workstation? (i.e. Windows X - case sensitive)"
+
+Using the same RDP connection established from the previous question, students need to open PowerShell and use the Get-WmiObject Cmdlet with the Win32_OperatingSystem class and only show Version, to find out that the version is Windows 10:
+Code: powershell
+
+Get-WmiObject -Class win32_OperatingSystem | select Version
+
+PS C:\Users\htb-student> Get-WmiObject -Class win32_OperatingSystem | select Version
+
+Version    
+-------
+10.0.19041 
+
+Answer: Windows 10
+Operating System Structure
+Question 1
+"Find the non-standard directory in the C drive. Submit the contents of the flag file saved in this directory."
+
+After spawning the Windows target machine, students need to use xfreerdp to connect to it using the credentials htb-student:Academy_WinFun!:
+Code: shell
+
+xfreerdp /v:STMIP /u:htb-student /p:Academy_WinFun!
+
+┌─[us-academy-1]─[10.10.14.215]─[htb-ac413848@pwnbox-base]─[~]
+└──╼ [★]$ xfreerdp /v:10.129.184.98 /u:htb-student /p:Academy_WinFun!
+
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.core] - freerdp_connect:freerdp_set_last_error_ex resetting error state
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpdr
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpsnd
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx cliprdr
+[15:57:49:121] [4099:4100] [INFO][com.freerdp.primitives] - primitives autodetect, using optimized
+<SNIP>
+
+After successfully connecting to the spawned target machine, students need to open the Command Prompt:
+
+Windows_Fundamentals_image_2.png
+
+Students then need to change directories to the root of the "C" directory:
+Code: cmd
+
+cd C:\
+
+C:\Users\htb-student>cd C:\
+
+c:\>
+
+When issuing the dir command, students will notice that the Academy directory is foreign to Windows:
+
+c:\>dir
+
+ Volume in drive C has no label.
+ Volume Serial Number is 905B-28C3
+
+ Directory of c:\
+
+09/07/2020  01:41 PM    <DIR>          Academy
+12/07/2019  02:14 AM    <DIR>          PerfLogs
+01/31/2022  05:05 PM    <DIR>          Program Files
+01/31/2022  04:01 PM    <DIR>          Program Files (x86)
+01/31/2022  04:02 PM    <DIR>          Users
+01/31/2022  05:07 PM    <DIR>          Windows
+               0 File(s)              0 bytes
+               7 Dir(s)   5,185,355,776 bytes free
+
+Navigating to it and then issuing the dir command inside it, students will find a file named "flag.txt", thus they will need to use the type command on it to print its content:
+Code: cmd
+
+cd Academy
+dir
+type flag.txt
+
+c:\>cd Academy
+
+c:\Academy>dir
+
+ Volume in drive C has no label.
+ Volume Serial Number is 905B-28C3
+
+ Directory of c:\Academy
+
+09/07/2020  01:41 PM    <DIR>          .
+09/07/2020  01:41 PM    <DIR>          ..
+09/07/2020  12:17 PM                32 flag.txt
+               1 File(s)             32 bytes
+               2 Dir(s)   5,180,059,648 bytes free
+
+c:\Academy>type flag.txt
+
+c8fe8d977d3a0c655ed7cf81e4d13c75
+
+Answer: c8fe8d977d3a0c655ed7cf81e4d13c75
+File System
+Question 1
+"What system user has full control over the c:\users directory?"
+
+After spawning the Windows target machine, students need to use xfreerdp to connect to it using the credentials htb-student:Academy_WinFun!:
+Code: shell
+
+xfreerdp /v:STMIP /u:htb-student /p:Academy_WinFun!
+
+┌─[us-academy-1]─[10.10.14.215]─[htb-ac413848@pwnbox-base]─[~]
+└──╼ [★]$ xfreerdp /v:10.129.184.98 /u:htb-student /p:Academy_WinFun!
+
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.core] - freerdp_connect:freerdp_set_last_error_ex resetting error state
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpdr
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpsnd
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx cliprdr
+[15:57:49:121] [4099:4100] [INFO][com.freerdp.primitives] - primitives autodetect, using optimized
+<SNIP>
+
+After successfully connecting to the spawned target machine, students need to open the Command Prompt and use the icacls utility on the "c:\users" directory:
+Code: cmd
+
+icacls c:\\users
+
+c:\>icacls C:\users
+
+c:\users Everyone:(OI)(CI)(RX)
+         NT AUTHORITY\SYSTEM:(OI)(CI)(F)
+         BUILTIN\Administrators:(OI)(CI)(F)
+         WS01\bob.smith:(OI)(CI)(F)
+         BUILTIN\Users:(OI)(CI)(RX)
+
+Successfully processed 1 files; Failed processing 0 files
+
+Students will notice that the system user bob.smith has full control over the directory.
+
+Answer: bob.smith
+NTFS vs. Share Permissions
+Question 1
+"What protocol discussed in this section is used to share resources on the network using Windows? (Format: case sensitive)"
+
+The SMB protocol is used to share resources on the network using Windows:
+
+Windows_Fundamentals_image_3.png
+
+Answer: SMB
+NTFS vs. Share Permissions
+Question 2
+"What is the name of the utility that can be used to view logs made by a Windows system? (Format: 2 words, 1 space, not case sensitive)"
+
+The Event Viewer is the name of the utility that can be used to view logs made by a Windows operating system:
+
+Windows_Fundamentals_image_4.png
+
+Answer: Event Viewer
+NTFS vs. Share Permissions
+Question 3
+"What is the full directory path to the Company Data share we created?"
+
+Students can find the full directory path from the section's reading:
+
+Windows_Fundamentals_image_5.png
+
+Answer: C:\Users\htb-student\Desktop\Company Data
+Windows Services & Processes
+Question 1
+"Identify one of the non-standard update services running on the host. Submit the full name of the service executable (not the DisplayName) as your answer."
+
+After spawning the Windows target machine, students need to use xfreerdp to connect to it using the credentials htb-student:Academy_WinFun!:
+Code: shell
+
+xfreerdp /v:STMIP /u:htb-student /p:Academy_WinFun!
+
+┌─[us-academy-1]─[10.10.14.215]─[htb-ac413848@pwnbox-base]─[~]
+└──╼ [★]$ xfreerdp /v:10.129.184.98 /u:htb-student /p:Academy_WinFun!
+
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.core] - freerdp_connect:freerdp_set_last_error_ex resetting error state
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpdr
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpsnd
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx cliprdr
+[15:57:49:121] [4099:4100] [INFO][com.freerdp.primitives] - primitives autodetect, using optimized
+<SNIP>
+
+After successfully connecting to the spawned target machine, students need to use the Get-Service Cmdlet to query for the running services:
+Code: powershell
+
+Get-Service | ? {$_.Status -eq "Running"} | FL
+
+PS C:\Users\htb-student> Get-Service | ? {$_.Status -eq "Running"} | FL
+
+<SNIP>
+Name                : AppXSvc
+DisplayName         : AppX Deployment Service (AppXSVC)
+Status              : Running
+DependentServices   : {}
+ServicesDependedOn  : {rpcss, staterepository}
+CanPauseAndContinue : False
+CanShutdown         : True
+CanStop             : True
+ServiceType         : Win32OwnProcess, Win32ShareProcess
+
+Name                : FoxitReaderUpdateService
+DisplayName         : Foxit Reader Update Service
+Status              : Running
+DependentServices   : {}
+ServicesDependedOn  : {}
+CanPauseAndContinue : False
+CanShutdown         : True
+CanStop             : True
+ServiceType         : Win32OwnProcess, InteractiveProcess
+<SNIP>
+
+Students will notice that there is a Service with the name of FoxitReaderUpdateService. Students alternatively can use the Task Manager and view the services under the Services tab to find the non-standard update service:
+
+Windows_Fundamentals_image_6.png
+
+Windows_Fundamentals_image_7.png
+
+Windows_Fundamentals_image_8.png
+
+However, with the hint provided for the question, students could guess that the service has something to do with a "Reader" and find the answer quickly:
+Code: powershell
+
+PS C:\> Get-Service '*Reader*' | Where-Object {$_.Status -eq "Running"} | FL
+
+PS C:\> Get-Service '*Reader*' | Where-Object {$_.Status -eq "Running"} | FL
+
+Name                : FoxitReaderUpdateService
+DisplayName         : Foxit Reader Update Service
+Status              : Running
+DependentServices   : {}
+ServicesDependedOn  : {}
+CanPauseAndContinue : False
+CanShutdown         : True
+CanStop             : True
+ServiceType         : Win32OwnProcess, InteractiveProcess
+
+Answer: FoxitReaderUpdateService.exe
+Interacting with the Windows Operating System
+Question 1
+"What is the alias set for the ipconfig.exe command?"
+
+After spawning the Windows target machine, students need to use xfreerdp to connect to it using the credentials htb-student:Academy_WinFun!:
+Code: shell
+
+xfreerdp /v:STMIP /u:htb-student /p:Academy_WinFun!
+
+┌─[us-academy-1]─[10.10.14.215]─[htb-ac413848@pwnbox-base]─[~]
+└──╼ [★]$ xfreerdp /v:10.129.184.98 /u:htb-student /p:Academy_WinFun!
+
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.core] - freerdp_connect:freerdp_set_last_error_ex resetting error state
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpdr
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpsnd
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx cliprdr
+[15:57:49:121] [4099:4100] [INFO][com.freerdp.primitives] - primitives autodetect, using optimized
+<SNIP>
+
+After successfully connecting to the spawned target machine, students need to use the Get-Alias Cmdlet with the -Definition parameter and specify ipconfig, to find the alias ifconfig:
+Code: powershell
+
+Get-Alias -Definition 'ipconfig'
+
+PS C:\Users\htb-student> Get-Alias -Definition 'ipconfig'
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Alias           ifconfig -> ipconfig.exe
+
+Answer: ifconfig
+Interacting with the Windows Operating System
+Question 2
+"Find the Execution Policy set for the LocalMachine scope."
+
+Using the same RDP connection established in the previous question, students need to use the Get-ExecutionPolicy Cmdlet with the -List parameter:
+Code: powershell
+
+Get-ExecutionPolicy -List
+
+PS C:\Users\htb-student> Get-ExecutionPolicy -List
+
+Scope 			ExecutionPolicy
+----- 			---------------
+MachinePolicy    Undefined
+UserPolicy       Undefined
+Process          Bypass
+CurrentUser      Undefined
+LocalMachine     Unrestricted
+
+Alternatively, students can use the -Scope parameter on the Get-ExecutionPolicy Cmdlet and specify LocalMachine, to find Unrestricted set for the Execution Policy for the LocalMachine scope:
+Code: powershell
+
+Get-ExecutionPolicy -Scope LocalMachine
+
+PS C:\Users\htb-student> Get-ExecutionPolicy -Scope LocalMachine
+
+Unrestricted
+
+Answer: Unrestricted
+Windows Management Instrumentation (WMI)
+Question 1
+"Use WMI to find the serial number of the system."
+
+After spawning the Windows target machine, students need to use xfreerdp to connect to it using the credentials htb-student:Academy_WinFun!:
+Code: shell
+
+xfreerdp /v:STMIP /u:htb-student /p:Academy_WinFun!
+
+┌─[us-academy-1]─[10.10.14.215]─[htb-ac413848@pwnbox-base]─[~]
+└──╼ [★]$ xfreerdp /v:10.129.184.98 /u:htb-student /p:Academy_WinFun!
+
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.core] - freerdp_connect:freerdp_set_last_error_ex resetting error state
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpdr
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpsnd
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx cliprdr
+[15:57:49:121] [4099:4100] [INFO][com.freerdp.primitives] - primitives autodetect, using optimized
+<SNIP>
+
+After successfully connecting to the spawned target machine, students need to use the Get-WmiObject Cmdlet with the -Class parameter to specify the Win32_OperatingSystem WMI class name, and then only show SerialNumber:
+Code: powershell
+
+Get-WmiObject -Class Win32_OperatingSystem | Select SerialNumber
+
+PS C:\Users\htb-student> Get-WmiObject -Class Win32_OperatingSystem | Select SerialNumber
+
+SerialNumber
+------------
+00329-10280-00000-AA938
+
+Answer: 00329-10280-00000-AA938
+Windows Security
+Question 1
+"Find the SID of the bob.smith user."
+
+After spawning the Windows target machine, students need to use xfreerdp to connect to it using the credentials htb-student:Academy_WinFun!:
+Code: shell
+
+xfreerdp /v:STMIP /u:htb-student /p:Academy_WinFun!
+
+┌─[us-academy-1]─[10.10.14.215]─[htb-ac413848@pwnbox-base]─[~]
+└──╼ [★]$ xfreerdp /v:10.129.184.98 /u:htb-student /p:Academy_WinFun!
+
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.core] - freerdp_connect:freerdp_set_last_error_ex resetting error state
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpdr
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx rdpsnd
+[15:57:49:806] [4099:4100] [INFO][com.freerdp.client.common.cmdline] - loading channelEx cliprdr
+[15:57:49:121] [4099:4100] [INFO][com.freerdp.primitives] - primitives autodetect, using optimized
+<SNIP>
+
+After successfully connecting to the spawned target machine, students need to use the Get-Wmiobject Cmdlet with the Win32_Account class and apply the filter for the Name of bob.smith (students can also use Select SID to show only the SID):
+Code: powershell
+
+Get-WmiObject -Class Win32_Account -Filter "Name='bob.smith'"
+
+PS C:\Users\htb-student> Get-WmiObject -Class Win32_Account -Filter "Name='bob.smith'"
+
+AccountType : 512
+Caption     : WS01\bob.smith
+Domain      : WS01
+SID         : S-1-5-21-2614195641-1726409526-3792725429-1003
+FullName    :
+Name        : bob.smith
+
+Answer: S-1-5-21-2614195641-1726409526-3792725429-1003
+Windows Security
+Question 2
+"What 3rd party security application is disabled at startup for the current user? (The answer is case sensitive)."
+
+Using the same RDP connection from the previous question, students need to run the Reg Query command on the registry hive HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run to find out that NordVPN, a 3rd party security application, has the Data value starting with 03 for the Type REG_BINARY, which implies that it is disabled, because any other binary value not starting with 02 or 06 means that the application is disabled:
+Code: powershell
+
+Reg Query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"
+
+PS C:\Users\htb-student> Reg Query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"
+
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run
+    OneDrive    REG_BINARY    03000000D674D894ED16D801
+    NordVPN     REG_BINARY    03000000EABC5C91ED16D801
+
+Alternatively, students can also search for Startup Apps to find NordVPN disabled.
+
+Answer: NordVPN
+Skills Assessment - Windows Fundamentals
+Question 1
+"What is the name of the group that is present in the Company Data Share Permissions ACL by default?"
+
+Before attempting to answer the questions, students need to carry out the eight steps provided in the section.
+
+    "Creating a shared folder called Company Data"
+
+After spawning the Windows target machine, students need to use xfreerdp to connect to it using the credentials htb-student:Academy_WinFun!:
+Code: shell
+
+xfreerdp /v:STMIP /u:htb-student /p:Academy_WinFun! /dynamic-resolution
+
+┌─[eu-academy-1]─[10.10.15.83]─[htb-ac413848@htb-dd0rdy2msl]─[~]
+└──╼ [★]$ xfreerdp /v:10.129.62.233 /u:htb-student /p:Academy_WinFun! /dynamic-resolution
+
+<SNIP>
+[11:00:12:199] [10751:10752] [WARN][com.freerdp.crypto] - CN = WS01
+[11:00:12:199] [10751:10752] [ERROR][com.freerdp.crypto] - @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+[11:00:12:199] [10751:10752] [ERROR][com.freerdp.crypto] - @           WARNING: CERTIFICATE NAME MISMATCH!           @
+[11:00:12:199] [10751:10752] [ERROR][com.freerdp.crypto] - @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+[11:00:12:199] [10751:10752] [ERROR][com.freerdp.crypto] - The hostname used for this connection (10.129.62.233:3389) 
+[11:00:12:199] [10751:10752] [ERROR][com.freerdp.crypto] - does not match the name given in the certificate:
+[11:00:12:199] [10751:10752] [ERROR][com.freerdp.crypto] - Common Name (CN):
+[11:00:12:199] [10751:10752] [ERROR][com.freerdp.crypto] - 	WS01
+[11:00:12:199] [10751:10752] [ERROR][com.freerdp.crypto] - A valid certificate for the wrong name should NOT be trusted!
+Certificate details for 10.129.62.233:3389 (RDP-Server):
+	Common Name: WS01
+	Subject:     CN = WS01
+	Issuer:      CN = WS01
+	Thumbprint:  95:77:cc:50:c9:c7:16:39:f6:be:2d:df:e1:5d:db:84:14:e6:e5:a5:b9:1b:05:33:c5:0e:61:54:45:76:d2:eb
+The above X.509 certificate could not be verified, possibly because you do not have
+the CA certificate in your certificate store, or the certificate has expired.
+Please look at the OpenSSL documentation on how to add a private CA to the store.
+Do you trust the above certificate? (Y/T/N) Y
+
+Windows_Fundamentals_image_9.png
+
+Then, students need to create a folder named Company Data and make it a share:
+
+Windows_Fundamentals_image_10.png
+
+Windows_Fundamentals_image_11.png
+
+Windows_Fundamentals_image_12.png
+
+Windows_Fundamentals_image_13.png
+
+Windows_Fundamentals_image_14.png
+
+To find the answer for the first question, students need to open the Sharing tab of the folder's properties, click Advanced Sharing, then click Permissions tab to notice that the Everyone group is present in the share's ACL by default:
+
+Windows_Fundamentals_image_15.png
+
+Windows_Fundamentals_image_16.png
+
+    "Creating a subfolder called HR inside of the Company Data folder"
+
+Within the Company Data folder, students need to create a subfolder called HR inside it and make it a share also:
+
+Windows_Fundamentals_image_17.png
+
+Windows_Fundamentals_image_18.png
+
+Windows_Fundamentals_image_19.png
+
+    "Creating a user called Jim"
+
+Subsequently, students need to create a user called Jim:
+
+Windows_Fundamentals_image_20.png
+
+Windows_Fundamentals_image_21.png
+
+Windows_Fundamentals_image_22.png
+
+Windows_Fundamentals_image_23.png
+
+    "Creating a security group called HR"
+
+Afterward, students need to create a security group called HR. To do so, students need to search for Computer Management:
+
+Windows_Fundamentals_image_24.png
+
+Then, students need to select Local Users and Groups, select Groups, right-click and select New Group:
+
+Windows_Fundamentals_image_25.png
+
+    "Adding Jim to the HR security group"
+
+Students also need to add the user Jim to the security group before creating it:
+
+Windows_Fundamentals_image_26.png
+
+Windows_Fundamentals_image_27.png
+
+Windows_Fundamentals_image_28.png
+
+    "Adding the HR security group to the shared Company Data folder and NTFS permissions list"
+        "Remove the default group that is present"
+        "Share Permissions: Allow Change & Read"
+        "Disable Inheritance before issuing specific NTFS permissions"
+        "NTFS permissions: Modify, Read & Execute, List folder contents, Read, Write"
+
+Subsequently, on the Company Data share, students need to remove the Everyone group and then add the HR one:
+
+Windows_Fundamentals_image_29.png
+
+Windows_Fundamentals_image_30.png
+
+Windows_Fundamentals_image_31.png
+
+Students need to assign the Change and Read permissions for the HR group:
+
+Windows_Fundamentals_image_32.png
+
+Then, students need to Disable inheritance:
+
+Windows_Fundamentals_image_33.png
+
+Windows_Fundamentals_image_34.png
+
+Windows_Fundamentals_image_35.png
+
+Windows_Fundamentals_image_36.png
+
+After applying the changes, students need to set the NTFS permissions Modify, Read, Execute, List folder contents, and Write to the user htb-student:
+
+Windows_Fundamentals_image_37.png
+
+Then, students need to do the same for the share HR within Company Data:
+
+Windows_Fundamentals_image_38.png
+
+Windows_Fundamentals_image_39.png
+
+Windows_Fundamentals_image_40.png
+
+Windows_Fundamentals_image_41.png
+
+Windows_Fundamentals_image_42.png
+
+Windows_Fundamentals_image_43.png
+
+Windows_Fundamentals_image_44.png
+
+Windows_Fundamentals_image_45.png
+
+Windows_Fundamentals_image_46.png
+
+Windows_Fundamentals_image_47.png
+
+Students now can answer the subsequent questions that rely on performing these steps.
+
+Answer: Everyone
+Skills Assessment - Windows Fundamentals
+Question 2
+"What is the name of the tab that allows you to configure NTFS permissions?"
+
+Security is the name of the tab that allows configuring NTFS permissions, as students have seen when applying the steps in the previous section.
+
+Answer: Security
+Skills Assessment - Windows Fundamentals
+Question 3
+"What is the name of the service associated with Windows Update?"
+
+From the reading of the section Service Permissions, student know that the name of the service associated with Windows Update is wuauserv:
+
+Windows_Fundamentals_image_48.png
+
+Answer: wuauserv
+Skills Assessment - Windows Fundamentals
+Question 4
+"List the SID associated with the user account Jim you created."
+
+Using the previously established RDP session, students need to use the Get-Wmiobject Cmdlet on the Win32_UserAccount class to find that the SID of the user Jim is S-1-5-21-2614195641-1726409526-3792725429-1006:
+Code: powershell
+
+Get-Wmiobject -Class Win32_UserAccount
+
+PS C:\Users\htb-student> Get-Wmiobject -Class Win32_UserAccount
+
+<SNIP>
+
+AccountType : 512
+Caption     : WS01\Jim
+Domain      : WS01
+SID         : S-1-5-21-2614195641-1726409526-3792725429-1006
+FullName    :
+Name        : Jim
+
+<SNIP>
+
+Answer: S-1-5-21-2614195641-1726409526-3792725429-1006
+Skills Assessment - Windows Fundamentals
+Question 5
+"List the SID associated with the HR security group you created."
+
+Using the previously established RDP session, students need to use the Get-Wmiobject Cmdlet on the Win32_Group class to find that the SID of the security group HR is S-1-5-21-2614195641-1726409526-3792725429-1007:
+
+Get-Wmiobject -Class Win32_Group
+
+PS C:\Users\htb-student> Get-Wmiobject -Class Win32_Group
+
+Caption                                  Domain Name                                SID
+-------                                  ------ ----                                ---
+WS01\Access Control Assistance Operators WS01   Access Control Assistance Operators S-1-5-32-579
+WS01\Administrators                      WS01   Administrators                      S-1-5-32-544
+WS01\Backup Operators                    WS01   Backup Operators                    S-1-5-32-551
+WS01\Cryptographic Operators             WS01   Cryptographic Operators             S-1-5-32-569
+WS01\Distributed COM Users               WS01   Distributed COM Users               S-1-5-32-562
+WS01\Event Log Readers                   WS01   Event Log Readers                   S-1-5-32-573
+WS01\Guests                              WS01   Guests                              S-1-5-32-546
+WS01\Hyper-V Administrators              WS01   Hyper-V Administrators              S-1-5-32-578
+WS01\IIS_IUSRS                           WS01   IIS_IUSRS                           S-1-5-32-568
+WS01\Network Configuration Operators     WS01   Network Configuration Operators     S-1-5-32-556
+WS01\Performance Log Users               WS01   Performance Log Users               S-1-5-32-559
+WS01\Performance Monitor Users           WS01   Performance Monitor Users           S-1-5-32-558
+WS01\Power Users                         WS01   Power Users                         S-1-5-32-547
+WS01\Remote Desktop Users                WS01   Remote Desktop Users                S-1-5-32-555
+WS01\Remote Management Users             WS01   Remote Management Users             S-1-5-32-580
+WS01\Replicator                          WS01   Replicator                          S-1-5-32-552
+WS01\System Managed Accounts Group       WS01   System Managed Accounts Group       S-1-5-32-581
+WS01\Users                               WS01   Users                               S-1-5-32-545
+WS01\HR                                  WS01   HR                                  S-1-5-21-2614195641-1726409526-3792725429-1007
+
+Answer: S-1-5-21-2614195641-1726409526-3792725429-1007
